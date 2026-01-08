@@ -75,11 +75,14 @@ else
 fi
 
 # Test wp-env
+echo ""
 echo -e "${YELLOW}Testing wp-env installation...${NC}"
-WPENV_VERSION=$(docker run --rm wokenv-test:node20-alpine wp-env --version 2>&1)
+WPENV_VERSION=$(docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+	wokenv-test:node20-alpine wp-env --version 2>&1)
 WPENV_EXIT=$?
 
-if [ $WPENV_EXIT -eq 0 ] && [[ $WPENV_VERSION == *"@wordpress/env"* ]]; then
+# Check if wp-env returns exit code 0 and output matches version format (X.Y.Z)
+if [ $WPENV_EXIT -eq 0 ] && [[ $WPENV_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 	echo -e "${GREEN}✅ wp-env installed: $WPENV_VERSION${NC}"
 else
 	echo -e "${RED}❌ wp-env not found${NC}"
