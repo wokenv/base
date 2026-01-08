@@ -8,6 +8,11 @@ ARG NODE_VARIANT=alpine
 # Base stage
 FROM node:${NODE_VERSION}-${NODE_VARIANT} AS base
 
+# Redeclare ARGs after FROM to make them available in this stage
+ARG NODE_VERSION
+ARG NODE_VARIANT
+ARG WPENV_VERSION=10
+
 # Install system dependencies based on variant
 # hadolint ignore=DL3018,DL3008
 RUN if [ "${NODE_VARIANT}" = "alpine" ]; then \
@@ -20,7 +25,6 @@ RUN if [ "${NODE_VARIANT}" = "alpine" ]; then \
     else \
         apt-get update && apt-get install -y --no-install-recommends \
             docker.io \
-            docker-compose \
             git \
             sudo \
         && rm -rf /var/lib/apt/lists/*; \
@@ -48,18 +52,20 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 WORKDIR /app
 
 # Install wp-env and patch-package globally
-ARG WPENV_VERSION=10
 # hadolint ignore=DL3016
 RUN npm install -g @wordpress/env@${WPENV_VERSION} patch-package
 
-# Copy and apply patches
+# Apply patches to wp-env
 COPY patches /tmp/patches
 # hadolint ignore=DL3003
 RUN if [ -d /tmp/patches ]; then \
         NPM_ROOT=$(npm root -g) && \
         cd "$NPM_ROOT" && \
+        # Create temporary package.json for patch-package \
+        echo '{"name":"temp","version":"1.0.0"}' > package.json && \
         cp -r /tmp/patches/* . && \
         npx patch-package && \
+        rm -f package.json && \
         rm -rf /tmp/patches; \
     fi
 

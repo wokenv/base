@@ -3,7 +3,7 @@
 set -euo
 
 # If USER_ID and GROUP_ID are set, create user and switch to it
-if [ -n "$USER_ID" ] && [ -n "$GROUP_ID" ]; then
+if [ -n "${USER_ID:-}" ] && [ -n "${GROUP_ID:-}" ]; then
 	# Create group if it doesn't exist
 	if ! getent group "$GROUP_ID" >/dev/null 2>&1; then
 		addgroup -g "$GROUP_ID" hostuser 2>/dev/null || true
