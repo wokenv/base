@@ -71,7 +71,7 @@ jobs:
     strategy:
       matrix:
         node: [18, 20, 22]
-        variant: [alpine, bookworm]
+        variant: [alpine, bookworm, trixie]
         include:
           # Add LTS markers for popular versions
           - node: 20

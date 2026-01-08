@@ -13,8 +13,9 @@ Docker images for [Wokenv](https://github.com/wokenv/wokenv) - WordPress develop
 Images published to Docker Hub: [`frugan/wokenv`](https://hub.docker.com/r/frugan/wokenv)
 
 **Variants:**
-- **Alpine** (recommended) - Lightweight
-- **Bookworm** (Debian) - Full-featured
+- **Alpine** (recommended) - Lightweight, minimal footprint
+- **Bookworm** (Debian 12) - Stable, full-featured
+- **Trixie** (Debian 13) - Testing, latest features
 
 **Node.js versions:** 18, 20 (LTS), 22
 
@@ -31,9 +32,13 @@ frugan/wokenv:node20-alpine-wpenv10
 frugan/wokenv:node22-alpine-wpenv10
 frugan/wokenv:node18-alpine-wpenv10
 
-# Bookworm (Debian) variants
+# Bookworm (Debian 12) variants
 frugan/wokenv:node20-bookworm-wpenv10
 frugan/wokenv:node22-bookworm-wpenv10
+
+# Trixie (Debian 13) variants
+frugan/wokenv:node20-trixie-wpenv10
+frugan/wokenv:node22-trixie-wpenv10
 ```
 
 ### Short Tags (Alpine only)
@@ -63,6 +68,9 @@ docker pull frugan/wokenv:latest
 
 # Or specific version
 docker pull frugan/wokenv:node20-wpenv10
+
+# Or specific variant
+docker pull frugan/wokenv:node20-trixie-wpenv10
 ```
 
 See [Wokenv documentation](https://github.com/wokenv/wokenv) for usage instructions.
