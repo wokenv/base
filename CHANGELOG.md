@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0](https://github.com/wokenv/base/compare/v0.1.0...v0.2.0) (2026-01-08)
+
+### Features
+
+* add trixie variant ([ea55a49](https://github.com/wokenv/base/commit/ea55a49d52b8497f0c489471796616a8d52a0125))
+
+### Bug Fixes
+
+* fix Dockerfile ARG position ([fa4a0b1](https://github.com/wokenv/base/commit/fa4a0b1c97faf8e55db4a974b45cccd5428e653d))
+
 ## [0.1.0](https://github.com/wokenv/base/compare/v0.0.0...v0.1.0) (2026-01-08)
 
 ### Features
