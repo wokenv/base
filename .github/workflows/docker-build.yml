@@ -72,6 +72,10 @@ jobs:
       matrix:
         node: [18, 20, 22]
         variant: [alpine, bookworm, trixie]
+        exclude:
+          # Node 18 doesn't have trixie variant (EOL April 2025)
+          - node: 18
+            variant: trixie
         include:
           # Add LTS markers for popular versions
           - node: 20
