@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -euo
+set -eu
 
 # If USER_ID and GROUP_ID are set, create user and switch to it
 if [ -n "${USER_ID:-}" ] && [ -n "${GROUP_ID:-}" ]; then
