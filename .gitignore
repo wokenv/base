@@ -21,3 +21,14 @@ Thumbs.db
 # Temporary files
 *.tmp
 .tmp/
+
+# Various
+.claude*
+venv/
+__pycache__/
+*.pyc
+
+# Linter
+megalinter-reports/
+*.cache
+core.*
