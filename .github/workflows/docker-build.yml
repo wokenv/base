@@ -3,15 +3,15 @@ name: Build
 on:
   schedule:
     # Run daily at 2:00 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
   push:
     branches:
       - main
     paths:
-      - 'Dockerfile'
-      - 'entrypoint.sh'
-      - 'patches/**'
-      - '.github/workflows/docker-build.yml'
+      - "Dockerfile"
+      - "entrypoint.sh"
+      - "patches/**"
+      - ".github/workflows/docker-build.yml"
   workflow_dispatch:
 
 env:
@@ -25,28 +25,28 @@ jobs:
       wpenv_version: ${{ steps.check.outputs.wpenv_version }}
       wpenv_major: ${{ steps.check.outputs.wpenv_major }}
       should_update_tracker: ${{ steps.check.outputs.should_update_tracker }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
-      
+          node-version: "20"
+
       - name: Check wp-env version
         id: check
         run: |
           # Get latest wp-env version from npm
           LATEST_WPENV=$(npm view @wordpress/env version)
           WPENV_MAJOR=$(echo $LATEST_WPENV | cut -d. -f1)
-          
+
           echo "wpenv_version=$LATEST_WPENV" >> $GITHUB_OUTPUT
           echo "wpenv_major=$WPENV_MAJOR" >> $GITHUB_OUTPUT
-          
+
           echo "Latest wp-env: $LATEST_WPENV (major: $WPENV_MAJOR)"
-          
+
           # Check if we need to update tracker (any version change)
           LAST_BUILT_FILE=".last-built-wpenv"
           if [ -f "$LAST_BUILT_FILE" ]; then
@@ -54,7 +54,7 @@ jobs:
           else
             LAST_BUILT="0.0.0"
           fi
-          
+
           if [ "$LATEST_WPENV" != "$LAST_BUILT" ]; then
             echo "should_update_tracker=true" >> $GITHUB_OUTPUT
             echo "wp-env version changed: $LAST_BUILT → $LATEST_WPENV"
@@ -67,7 +67,7 @@ jobs:
     name: Build ${{ matrix.node }}-${{ matrix.variant }}-wpenv${{ needs.check-versions.outputs.wpenv_major }}
     needs: check-versions
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         node: [18, 20, 22]
@@ -84,23 +84,23 @@ jobs:
           - node: 20
             variant: bookworm
             is_lts: true
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -121,7 +121,7 @@ jobs:
             type=raw,value=node${{ matrix.node }}-latest,enable=${{ matrix.variant == 'alpine' }}
             # LTS tag
             type=raw,value=node${{ matrix.node }}-lts,enable=${{ matrix.is_lts == true }}
-      
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -139,7 +139,7 @@ jobs:
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      
+
       - name: Update version tracker
         if: needs.check-versions.outputs.should_update_tracker == 'true' && matrix.is_default == true
         run: |
@@ -154,11 +154,11 @@ jobs:
     name: Update Docker Hub Description
     needs: build-and-push
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      
+
       - name: Update Docker Hub description
         uses: peter-evans/dockerhub-description@v5
         with:

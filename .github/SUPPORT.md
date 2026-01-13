@@ -13,4 +13,4 @@
 
 ## Commercial Support
 
-For commercial support or consulting: dev@frugan.it
+For commercial support or consulting: <dev@frugan.it>

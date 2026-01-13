@@ -3,11 +3,11 @@ contact_links:
   - name: "💬 Discussion"
     url: "https://github.com/wokenv/base/discussions"
     about: "For questions, ideas, and general discussion"
-    
+
   - name: "📖 Documentation"
     url: "https://github.com/wokenv/base"
     about: "Read the documentation before asking questions"
-    
+
   - name: "💌 Security Issues"
     url: "https://github.com/wokenv/base/security"
     about: "For security vulnerabilities (private reporting)"

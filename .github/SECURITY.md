@@ -5,7 +5,7 @@
 We actively support the following versions with security updates:
 
 | Version | Supported          |
-| ------- | ------------------ |
+|---------|--------------------|
 | 1.x.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
@@ -16,7 +16,7 @@ We take security seriously. If you discover a security vulnerability, please rep
 
 **Please DO NOT file a public issue for security vulnerabilities.**
 
-Instead, please send an email to: **dev@frugan.it**
+Instead, please send an email to: **<dev@frugan.it>**
 
 Include the following information:
 - Description of the vulnerability
@@ -67,7 +67,7 @@ WP Env includes several security features:
 ## Security Contact
 
 For security-related questions or concerns:
-- Email: dev@frugan.it
+- Email: <dev@frugan.it>
 - GitHub: [@frugan-dev](https://github.com/frugan-dev)
 
 ## Acknowledgments

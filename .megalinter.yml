@@ -1,0 +1,24 @@
+APPLY_FIXES: all
+SHOW_ELAPSED_TIME: true
+
+# Enable only relevant linters
+#ENABLE:
+#  - BASH
+#  - DOCKERFILE
+#  - MARKDOWN
+#  - YAML
+
+# Dockerfile linting
+DOCKERFILE_HADOLINT_ARGUMENTS: "--ignore DL3018 --ignore DL3008"
+
+# Bash linting
+BASH_SHELLCHECK_ARGUMENTS: "-e SC2086 -e SC2046"
+
+# Exclude patterns
+EXCLUDED_DIRECTORIES:
+  - patches
+  - .github
+  - megalinter-reports
+
+# File patterns
+FILTER_REGEX_INCLUDE: "(Dockerfile|entrypoint\\.sh|\\.ya?ml$|\\.md$)"

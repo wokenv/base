@@ -15,7 +15,7 @@ jobs:
   auto-merge:
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
-    
+
     steps:
       - name: Get PR info
         id: pr
@@ -27,7 +27,7 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number
             });
-            
+
             // Auto-merge patch and minor updates
             const title = pr.data.title.toLowerCase();
             const isMinorOrPatch = title.includes('patch') || 
