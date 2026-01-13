@@ -51,21 +51,24 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # Create app directory
 WORKDIR /app
 
-# Install wp-env and patch-package globally
+# Install wp-env globally
 # hadolint ignore=DL3016
-RUN npm install -g @wordpress/env@${WPENV_VERSION} patch-package
+RUN npm install -g @wordpress/env@${WPENV_VERSION}
 
-# Apply patches to wp-env
+# Apply patches to wp-env using git apply
+# Copies all patches and applies them dynamically
 COPY patches /tmp/patches
 # hadolint ignore=DL3003
 RUN if [ -d /tmp/patches ]; then \
         NPM_ROOT=$(npm root -g) && \
-        cd "$NPM_ROOT" && \
-        # Create temporary package.json for patch-package \
-        echo '{"name":"temp","version":"1.0.0"}' > package.json && \
-        cp -r /tmp/patches/* . && \
-        npx patch-package && \
-        rm -f package.json && \
+        cd "$(dirname "$NPM_ROOT")" && \
+        for patch in /tmp/patches/@wordpress+env+*.patch; do \
+            if [ -f "$patch" ]; then \
+                echo "Applying patch: $(basename "$patch")"; \
+                git apply --verbose --whitespace=fix "$patch" && \
+                echo "✓ Patch applied successfully: $(basename "$patch")"; \
+            fi; \
+        done; \
         rm -rf /tmp/patches; \
     fi
 
@@ -81,7 +84,7 @@ ARG VCS_REF
 ARG VERSION
 
 LABEL org.opencontainers.image.created="${BUILD_DATE}" \
-      org.opencontainers.image.authors="Wokenv Team" \
+      org.opencontainers.image.authors="Frugan" \
       org.opencontainers.image.url="https://github.com/wokenv/base" \
       org.opencontainers.image.documentation="https://github.com/wokenv/wokenv" \
       org.opencontainers.image.source="https://github.com/wokenv/base" \
@@ -89,4 +92,4 @@ LABEL org.opencontainers.image.created="${BUILD_DATE}" \
       org.opencontainers.image.revision="${VCS_REF}" \
       org.opencontainers.image.vendor="Wokenv" \
       org.opencontainers.image.title="Wokenv" \
-      org.opencontainers.image.description="WordPress development environment with Node.js, Docker, and wp-env"
+      org.opencontainers.image.description="WordPress development environment with Node.js, Docker, and @wordpress/env package pre-configured"
