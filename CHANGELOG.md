@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3](https://github.com/wokenv/base/compare/v0.2.2...v0.2.3) (2026-01-13)
+
+### Bug Fixes
+
+* patch init-config.js error "/.composer does not exist and could not be created" ([1f72236](https://github.com/wokenv/base/commit/1f7223624ecaa5b50449e0fc12e222ca2fe4b0de))
+
 ## [0.2.2](https://github.com/wokenv/base/compare/v0.2.1...v0.2.2) (2026-01-13)
 
 ### Bug Fixes
