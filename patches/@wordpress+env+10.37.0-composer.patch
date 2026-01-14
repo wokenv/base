@@ -8,7 +8,9 @@ index 9c6885d..12423bf 100644
  	// Make sure to do this as the user and ensure the binaries are available in the $PATH.
 +	//https://github.com/WordPress/gutenberg/issues/51419#issuecomment-2158545851          
  	dockerFileContent += `
++RUN ln -sf /root /home/root || true
 +RUN mkdir -p /home/$HOST_USERNAME/.composer /root/.composer && chown -R $HOST_UID:$HOST_GID /home/$HOST_USERNAME/.composer /root/.composer
  USER $HOST_UID:$HOST_GID
  ENV PATH="\${PATH}:/home/$HOST_USERNAME/.composer/vendor/bin"
++ENV COMPOSER_HOME="/home/$HOST_USERNAME/.composer"
  RUN composer global require --dev phpunit/phpunit:"^5.7.21 || ^6.0 || ^7.0 || ^8.0 || ^9.0 || ^10.0"
