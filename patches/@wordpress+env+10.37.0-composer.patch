@@ -1,15 +1,14 @@
 diff --git a/node_modules/@wordpress/env/lib/init-config.js b/node_modules/@wordpress/env/lib/init-config.js
-index 9c6885d..53fc18f 100644
+index 9c6885d..d8c952b 100644
 --- a/node_modules/@wordpress/env/lib/init-config.js
 +++ b/node_modules/@wordpress/env/lib/init-config.js
-@@ -265,9 +265,13 @@ RUN rm /tmp/composer-setup.php`;
+@@ -265,9 +265,12 @@ RUN rm /tmp/composer-setup.php`;
  
  	// Install any Composer packages we might need globally.
  	// Make sure to do this as the user and ensure the binaries are available in the $PATH.
 +	// https://github.com/WordPress/gutenberg/issues/51419#issuecomment-2158545851
  	dockerFileContent += `
-+RUN ln -sf /root /home/root || true
-+RUN mkdir -p /home/$HOST_USERNAME/.composer /root/.composer && chown -R $HOST_UID:$HOST_GID /home/$HOST_USERNAME/.composer /root/.composer
++RUN mkdir -p /home/$HOST_USERNAME/.composer && chown -R $HOST_UID:$HOST_GID /home/$HOST_USERNAME
  USER $HOST_UID:$HOST_GID
  ENV PATH="\${PATH}:/home/$HOST_USERNAME/.composer/vendor/bin"
 +ENV COMPOSER_HOME="/home/$HOST_USERNAME/.composer"
