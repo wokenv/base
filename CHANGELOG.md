@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4](https://github.com/wokenv/base/compare/v0.2.3...v0.2.4) (2026-01-14)
+
+### Bug Fixes
+
+* add patch for composer path when starting wp ([ea387e6](https://github.com/wokenv/base/commit/ea387e66a87dfcc16837fb982af8617c8072d0b1))
+
 ## [0.2.3](https://github.com/wokenv/base/compare/v0.2.2...v0.2.3) (2026-01-13)
 
 ### Bug Fixes
