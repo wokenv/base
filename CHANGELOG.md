@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5](https://github.com/wokenv/base/compare/v0.2.4...v0.2.5) (2026-01-14)
+
+### Bug Fixes
+
+* add COMPOSER_HOME in init-config.js patch ([fc031f7](https://github.com/wokenv/base/commit/fc031f70d9204105d761b825bda503c76b32fbf7))
+
 ## [0.2.4](https://github.com/wokenv/base/compare/v0.2.3...v0.2.4) (2026-01-14)
 
 ### Bug Fixes
