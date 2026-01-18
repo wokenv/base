@@ -11,11 +11,15 @@ on:
       - "Dockerfile"
       - "entrypoint.sh"
       - "patches/**"
-      - ".github/workflows/docker-build.yml"
+      - ".github/workflows/build.yml"
   workflow_dispatch:
 
 env:
   DOCKER_IMAGE: frugan/wokenv
+
+permissions:
+  contents: write
+  packages: read
 
 jobs:
   check-versions:

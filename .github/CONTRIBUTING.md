@@ -13,7 +13,7 @@ base/
 ├── patches/               # wp-env patches
 │   └── @wordpress_env_*.patch
 ├── .github/workflows/
-│   └── docker-build.yml   # Build automation
+│   └── build.yml   # Build automation
 └── .last-built-wpenv      # Version tracker
 ```
 
@@ -82,7 +82,7 @@ docker run --rm -it \
 
 To add support for a new Node.js version:
 
-1. Update the matrix in `.github/workflows/docker-build.yml`:
+1. Update the matrix in `.github/workflows/build.yml`:
    ```yaml
    matrix:
      node: [18, 20, 22, 24]  # Add new version

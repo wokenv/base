@@ -1,6 +1,6 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/frugan/wokenv)](https://hub.docker.com/r/frugan/wokenv)
 [![Docker Image Size](https://img.shields.io/docker/image-size/frugan/wokenv/latest)](https://hub.docker.com/r/frugan/wokenv)
-[![Build Status](https://github.com/wokenv/base/actions/workflows/docker-build.yml/badge.svg)](https://github.com/wokenv/base/actions/workflows/docker-build.yml)
+[![Build Status](https://github.com/wokenv/base/actions/workflows/build.yml/badge.svg)](https://github.com/wokenv/base/actions/workflows/build.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/wokenv/base)](https://github.com/wokenv/base/releases)
 [![License](https://img.shields.io/github/license/wokenv/base)](https://github.com/wokenv/base/blob/main/LICENSE)
 
