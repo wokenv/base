@@ -107,7 +107,7 @@ jobs:
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         env:
           WPENV_MAJOR: ${{ needs.check-versions.outputs.wpenv_major }}
         with:
