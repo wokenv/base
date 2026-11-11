@@ -1,6 +1,6 @@
 # Auto-label PRs based on changed files
 "area: core":
-  - any: ["Dockerfile", "entrypoit.sh", "patches/**"]
+  - any: ["Dockerfile", "entrypoint.sh"]
 
 "area: tests":
   - any: ["tests/**"]
