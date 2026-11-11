@@ -8,10 +8,10 @@ This repository contains Docker images for [Wokenv](https://github.com/wokenv/wo
 
 ```
 base/
-├── Dockerfile              # Multi-stage Dockerfile
+├── Dockerfile              # Image definition
 ├── entrypoint.sh          # Container entrypoint
-├── patches/               # wp-env patches
-│   └── @wordpress_env_*.patch
+├── tests/
+│   └── test.sh            # Smoke test for a built image
 ├── .github/workflows/
 │   └── build.yml   # Build automation
 └── .last-built-wpenv      # Version tracker
@@ -43,9 +43,8 @@ When reporting:
 
 ```bash
 docker build \
-  --build-arg NODE_VERSION=20 \
-  --build-arg NODE_VARIANT=alpine \
-  --build-arg WPENV_VERSION=10 \
+  --build-arg NODE_VERSION=24 \
+  --build-arg WPENV_VERSION=12 \
   -t wokenv:test \
   .
 ```
@@ -53,29 +52,12 @@ docker build \
 ### Test the Image
 
 ```bash
-# Test entrypoint
-docker run --rm wokenv:test sh -c "echo 'Test successful'"
+# Smoke test: tools, user mapping, access to the Docker socket
+tests/test.sh wokenv:test
 
-# Test wp-env installation
-docker run --rm wokenv:test sh -c "wp-env --version"
-
-# Test Docker CLI
-docker run --rm \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  wokenv:test \
-  sh -c "docker version"
-
-# Test with actual project
+# Test with an actual project, through the wokenv command
 cd /path/to/test-project
-docker run --rm -it \
-  -v "$(pwd):$(pwd)" \
-  -v "$HOME/.wp-env:/home/node/.wp-env" \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -w "$(pwd)" \
-  -e USER_ID=$(id -u) \
-  -e GROUP_ID=$(id -g) \
-  wokenv:test \
-  npx wp-env start
+WOKENV_IMAGE=wokenv:test wokenv start
 ```
 
 ## Adding New Node Versions
@@ -85,51 +67,26 @@ To add support for a new Node.js version:
 1. Update the matrix in `.github/workflows/build.yml`:
    ```yaml
    matrix:
-     node: [18, 20, 22, 24]  # Add new version
+     node: [22, 24, 26]  # Add new version
    ```
 
 2. Test locally first:
    ```bash
-   docker build --build-arg NODE_VERSION=24 -t wokenv:node24-test .
+   docker build --build-arg NODE_VERSION=26 -t wokenv:node26-test .
+   tests/test.sh wokenv:node26-test
    ```
 
 3. Submit PR with justification for new version
 
-## Updating wp-env Patches
+## wp-env Is Not Patched
 
-When a new wp-env version is released that breaks the patch:
-
-1. Test the current patch against new version
-2. Update patch file in `patches/`
-3. Update patch filename to reflect version
-4. Update Dockerfile `COPY` command if needed
-5. Test thoroughly
-6. Document changes in PR
-
-### Creating a New Patch
-
-```bash
-# Install specific wp-env version
-npm install -g @wordpress/env@10.37.0
-
-# Navigate to node_modules
-cd $(npm root -g)
-
-# Make changes to fix issues
-vim @wordpress/env/lib/get-host-user.js
-
-# Generate patch
-npx patch-package @wordpress/env
-
-# Copy patch to repository
-cp patches/@wordpress_env*.patch /path/to/base/patches/
-```
+Earlier versions of this image patched wp-env's sources, and every patch broke when wp-env moved its files. Do not reintroduce patches: wp-env must work unmodified, driven only through its configuration, its command line and environment variables such as `WP_ENV_HOME`.
 
 ## Code Style
 
 - Use clear, descriptive comments
 - Follow existing patterns in Dockerfile
-- Keep Alpine and Bookworm variants compatible
+- Keep `entrypoint.sh` POSIX sh: it must not depend on adduser/useradd flavours
 - Test on both amd64 and arm64 (if possible)
 
 ## Commit Messages
