@@ -1,82 +1,36 @@
 # Wokenv Docker Image
-# Multi-stage build supporting multiple Node versions and variants
+# Node.js + Docker CLI + @wordpress/env (wp-env), ready to drive the host's
+# Docker daemon on behalf of the wokenv CLI.
 
-# Build arguments
-ARG NODE_VERSION=20
-ARG NODE_VARIANT=alpine
+# wp-env 12 requires Node.js >= 22.13
+ARG NODE_VERSION=24
 
-# Base stage
-FROM node:${NODE_VERSION}-${NODE_VARIANT} AS base
+FROM node:${NODE_VERSION}-alpine
 
-# Redeclare ARGs after FROM to make them available in this stage
-ARG NODE_VERSION
-ARG NODE_VARIANT
-ARG WPENV_VERSION=10
+ARG WPENV_VERSION=12
 
-# Install system dependencies based on variant
-# hadolint ignore=DL3018,DL3008
-RUN if [ "${NODE_VARIANT}" = "alpine" ]; then \
-        apk add --no-cache \
-            docker-cli \
-            docker-cli-compose \
-            git \
-            shadow \
-            su-exec; \
-    else \
-        apt-get update && apt-get install -y --no-install-recommends \
-            docker.io \
-            git \
-            sudo \
-        && rm -rf /var/lib/apt/lists/*; \
-    fi
+# - docker-cli, docker-cli-compose: wp-env shells out to `docker compose`
+# - git: wp-env clones WordPress, plugins and themes
+# - su-exec: drop privileges to the host user in the entrypoint
+# hadolint ignore=DL3018
+RUN apk add --no-cache \
+        bash \
+        docker-cli \
+        docker-cli-compose \
+        git \
+        su-exec
 
-# Create node user with specific UID/GID if not exists
-RUN if ! id node > /dev/null 2>&1; then \
-        if [ "${NODE_VARIANT}" = "alpine" ]; then \
-            addgroup -g 1000 node && \
-            adduser -D -u 1000 -G node node; \
-        else \
-            groupadd -g 1000 node && \
-            useradd -u 1000 -g node -m node; \
-        fi; \
-    fi
-
-# Create /home/node directory and make it world-writable
-RUN mkdir -p /home/node && chmod 777 /home/node
-
-# Copy entrypoint script
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-# Create app directory
-WORKDIR /app
-
-# Install wp-env globally
+# js-yaml lets the wokenv CLI read wokenv.yml inside this image, so the host
+# needs no YAML parser. Global modules are resolved through NODE_PATH.
 # hadolint ignore=DL3016
-RUN npm install -g @wordpress/env@${WPENV_VERSION}
+RUN npm install -g "@wordpress/env@${WPENV_VERSION}" js-yaml@4 \
+    && npm cache clean --force
+ENV NODE_PATH=/usr/local/lib/node_modules
 
-# Apply patches to wp-env using git apply
-# Copies all patches and applies them dynamically
-COPY patches /tmp/patches
-# hadolint ignore=DL3003
-RUN if [ -d /tmp/patches ]; then \
-        NPM_ROOT=$(npm root -g) && \
-        cd "$(dirname "$NPM_ROOT")" && \
-        for patch in /tmp/patches/@wordpress+env+*.patch; do \
-            if [ -f "$patch" ]; then \
-                echo "Applying patch: $(basename "$patch")"; \
-                git apply --verbose --whitespace=fix "$patch" && \
-                echo "✓ Patch applied successfully: $(basename "$patch")"; \
-            fi; \
-        done; \
-        rm -rf /tmp/patches; \
-    fi
+COPY --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 
-# Set entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-
-# Default command
-CMD ["sh"]
+CMD ["wp-env", "--help"]
 
 # Metadata
 ARG BUILD_DATE

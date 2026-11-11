@@ -16,7 +16,6 @@ BASH_SHELLCHECK_ARGUMENTS: "-e SC2086 -e SC2046"
 
 # Exclude patterns
 EXCLUDED_DIRECTORIES:
-  - patches
   - .github
   - megalinter-reports
 

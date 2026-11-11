@@ -1,40 +1,46 @@
 #!/bin/sh
 
+# Runs the command as the host user (USER_ID:GROUP_ID) instead of root, so
+# that wp-env creates files with the right owner and builds its images for
+# that user. Without USER_ID and GROUP_ID the command runs as is.
+#
+# /etc/passwd and /etc/group are edited directly: it works the same on every
+# base image and does not depend on adduser/useradd flavours.
+
 set -eu
 
-# If USER_ID and GROUP_ID are set, create user and switch to it
-if [ -n "${USER_ID:-}" ] && [ -n "${GROUP_ID:-}" ]; then
-	# Create group if it doesn't exist
-	if ! getent group "$GROUP_ID" >/dev/null 2>&1; then
-		addgroup -g "$GROUP_ID" hostuser 2>/dev/null || true
-	fi
-
-	# Get the group name
-	GROUP_NAME=$(getent group "$GROUP_ID" | cut -d: -f1)
-
-	# Create user if it doesn't exist
-	if ! id -u "$USER_ID" >/dev/null 2>&1; then
-		adduser -D -u "$USER_ID" -G "$GROUP_NAME" hostuser 2>/dev/null || true
-	fi
-
-	# Get the user name
-	USER_NAME=$(getent passwd "$USER_ID" | cut -d: -f1)
-
-	# Add user to docker group if docker socket is mounted
-	if [ -S /var/run/docker.sock ]; then
-		DOCKER_GID=$(stat -c '%g' /var/run/docker.sock)
-		# Create docker group with the same GID as the socket
-		if ! getent group "$DOCKER_GID" >/dev/null 2>&1; then
-			addgroup -g "$DOCKER_GID" docker 2>/dev/null || true
-		fi
-		# Add user to docker group
-		DOCKER_GROUP=$(getent group "$DOCKER_GID" | cut -d: -f1)
-		addgroup "$USER_NAME" "$DOCKER_GROUP" 2>/dev/null || true
-	fi
-
-	# Switch to the user and execute command, preserving USER_ID and GROUP_ID
-	exec su-exec "$USER_NAME" env USER_ID="$USER_ID" GROUP_ID="$GROUP_ID" "$@"
-else
-	# No USER_ID/GROUP_ID set, just execute as current user (root)
+if [ -z "${USER_ID:-}" ] || [ -z "${GROUP_ID:-}" ] || [ "$(id -u)" != "0" ] || [ "$USER_ID" = "0" ]; then
 	exec "$@"
 fi
+
+SOCKET=/var/run/docker.sock
+
+# Adds a user to the member list of an existing group, once.
+add_to_group() {
+	if ! awk -F: -v group="$2" -v user="$1" \
+		'$1 == group { n = split($4, members, ","); for (i = 1; i <= n; i++) if (members[i] == user) found = 1 } END { exit !found }' \
+		/etc/group; then
+		sed -i -e "s/^\($2:[^:]*:[^:]*:\)\(..*\)$/\1\2,$1/" -e "s/^\($2:[^:]*:[^:]*:\)$/\1$1/" /etc/group
+	fi
+}
+
+# wp-env calls os.userInfo(), which fails for a UID without a passwd entry.
+if ! getent group "$GROUP_ID" >/dev/null 2>&1; then
+	echo "wokenv:x:$GROUP_ID:" >>/etc/group
+fi
+if ! getent passwd "$USER_ID" >/dev/null 2>&1; then
+	echo "wokenv:x:$USER_ID:$GROUP_ID:Wokenv:${HOME:-/tmp}:/bin/sh" >>/etc/passwd
+fi
+USER_NAME=$(getent passwd "$USER_ID" | cut -d: -f1)
+
+# Give the user access to the Docker socket through the socket's own group.
+if [ -S "$SOCKET" ]; then
+	SOCKET_GID=$(stat -c '%g' "$SOCKET")
+	if ! getent group "$SOCKET_GID" >/dev/null 2>&1; then
+		echo "docker-host:x:$SOCKET_GID:" >>/etc/group
+	fi
+	add_to_group "$USER_NAME" "$(getent group "$SOCKET_GID" | cut -d: -f1)"
+fi
+
+# su-exec resets HOME to the passwd entry: keep the one we were given.
+exec su-exec "$USER_NAME" env HOME="${HOME:-/tmp}" "$@"
