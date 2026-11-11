@@ -10,7 +10,7 @@ on:
     paths:
       - "Dockerfile"
       - "entrypoint.sh"
-      - "patches/**"
+      - "tests/**"
       - ".github/workflows/build.yml"
   workflow_dispatch:
 
@@ -37,7 +37,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "lts/*"
 
       - name: Check wp-env version
         id: check
@@ -68,26 +68,17 @@ jobs:
           fi
 
   build-and-push:
-    name: Build ${{ matrix.node }}-${{ matrix.variant }}-wpenv${{ needs.check-versions.outputs.wpenv_major }}
+    name: Build node${{ matrix.node }}-wpenv${{ needs.check-versions.outputs.wpenv_major }}
     needs: check-versions
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node: [18, 20, 22]
-        variant: [alpine, bookworm, trixie]
-        exclude:
-          # Node 18 doesn't have trixie variant (EOL April 2025)
-          - node: 18
-            variant: trixie
+        # wp-env 12 requires Node.js >= 22.13
+        node: [22, 24]
         include:
-          # Add LTS markers for popular versions
-          - node: 20
-            variant: alpine
+          - node: 24
             is_default: true
-          - node: 20
-            variant: bookworm
-            is_lts: true
 
     steps:
       - name: Checkout code
@@ -99,32 +90,41 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
-        env:
-          WPENV_MAJOR: ${{ needs.check-versions.outputs.wpenv_major }}
         with:
           images: ${{ env.DOCKER_IMAGE }}
           flavor: |
             latest=false
           tags: |
-            # Full tag: node20-alpine-wpenv10
-            type=raw,value=node${{ matrix.node }}-${{ matrix.variant }}-wpenv${{ needs.check-versions.outputs.wpenv_major }}
-            # Short tag: node20-wpenv10 (for alpine only)
-            type=raw,value=node${{ matrix.node }}-wpenv${{ needs.check-versions.outputs.wpenv_major }},enable=${{ matrix.variant == 'alpine' }}
-            # Latest tag for default version
+            # Full tag: node24-wpenv12
+            type=raw,value=node${{ matrix.node }}-wpenv${{ needs.check-versions.outputs.wpenv_major }}
+            # Rolling tag: node24 (latest wp-env for this Node.js version)
+            type=raw,value=node${{ matrix.node }}
+            # Latest tag for the default Node.js version
             type=raw,value=latest,enable=${{ matrix.is_default == true }}
-            # Node version latest: node20-latest
-            type=raw,value=node${{ matrix.node }}-latest,enable=${{ matrix.variant == 'alpine' }}
-            # LTS tag
-            type=raw,value=node${{ matrix.node }}-lts,enable=${{ matrix.is_lts == true }}
+
+      # Build for the runner only and test it: a broken image must not be pushed.
+      - name: Build test image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: wokenv-test:node${{ matrix.node }}
+          build-args: |
+            NODE_VERSION=${{ matrix.node }}
+            WPENV_VERSION=${{ needs.check-versions.outputs.wpenv_major }}
+          cache-from: type=gha,scope=node${{ matrix.node }}
+
+      - name: Test image
+        run: tests/test.sh wokenv-test:node${{ matrix.node }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -136,13 +136,12 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NODE_VERSION=${{ matrix.node }}
-            NODE_VARIANT=${{ matrix.variant }}
             WPENV_VERSION=${{ needs.check-versions.outputs.wpenv_major }}
             BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
             VCS_REF=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=node${{ matrix.node }}
+          cache-to: type=gha,mode=max,scope=node${{ matrix.node }}
 
       - name: Update version tracker
         if: needs.check-versions.outputs.should_update_tracker == 'true' && matrix.is_default == true
