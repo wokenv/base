@@ -12,77 +12,43 @@ Docker images for [Wokenv](https://github.com/wokenv/wokenv) - WordPress develop
 
 Images published to Docker Hub: [`frugan/wokenv`](https://hub.docker.com/r/frugan/wokenv)
 
-**Variants:**
-- **Alpine** (recommended) - Lightweight, minimal footprint
-- **Bookworm** (Debian 12) - Stable, full-featured
-- **Trixie** (Debian 13) - Testing, latest features
+**Base:** Alpine Linux
 
-**Node.js versions:** 18, 20 (LTS), 22
+**Node.js versions:** 22, 24 (default)
 
-**wp-env version:** 10 (major)
+**wp-env version:** 12 (major). wp-env 12 requires Node.js 22.13 or later.
 
 ## Tag Strategy
 
-### Full Tags
-Format: `node{VERSION}-{VARIANT}-wpenv{VERSION}`
+| Tag               | Example          | Description                                         |
+| ----------------- | ---------------- | --------------------------------------------------- |
+| `latest`          | `latest`         | Default Node.js version, latest wp-env (recommended) |
+| `node{N}`         | `node24`         | Latest wp-env for a Node.js version                 |
+| `node{N}-wpenv{M}` | `node24-wpenv12` | A Node.js version with a wp-env major version       |
 
-```bash
-# Alpine variants (default)
-frugan/wokenv:node20-alpine-wpenv10
-frugan/wokenv:node22-alpine-wpenv10
-frugan/wokenv:node18-alpine-wpenv10
-
-# Bookworm (Debian 12) variants
-frugan/wokenv:node20-bookworm-wpenv10
-frugan/wokenv:node22-bookworm-wpenv10
-
-# Trixie (Debian 13) variants
-frugan/wokenv:node20-trixie-wpenv10
-frugan/wokenv:node22-trixie-wpenv10
-```
-
-### Short Tags (Alpine only)
-Format: `node{VERSION}-wpenv{VERSION}`
-
-```bash
-frugan/wokenv:node20-wpenv10   # Same as node20-alpine-wpenv10
-frugan/wokenv:node22-wpenv10
-```
-
-### Rolling Tags
-
-```bash
-frugan/wokenv:latest            # node20-alpine-wpenv10 (recommended)
-frugan/wokenv:node20-latest     # Latest wpenv for Node 20
-frugan/wokenv:node22-latest     # Latest wpenv for Node 22
-frugan/wokenv:node20-lts        # Node 20 LTS (Bookworm variant)
-```
-
-**Note:** Tags are updated daily with latest OS patches and wp-env updates within the same major version.
+Tags with a `-alpine`, `-bookworm` or `-trixie` variant and tags for Node.js 18 and 20 belong to earlier releases and are no longer updated.
 
 ## Quick Start
 
-```bash
-# Pull latest image
-docker pull frugan/wokenv:latest
+These images are meant to be used through the [`wokenv`](https://github.com/wokenv/wokenv) command, which mounts what wp-env needs. To select an image in a project:
 
-# Or specific version
-docker pull frugan/wokenv:node20-wpenv10
-
-# Or specific variant
-docker pull frugan/wokenv:node20-trixie-wpenv10
+```yaml
+# wokenv.yml
+image: frugan/wokenv:node22
 ```
-
-See [Wokenv documentation](https://github.com/wokenv/wokenv) for usage instructions.
 
 ## What's Included
 
-- Node.js (18, 20, or 22)
-- npm
+- Node.js and npm
 - Docker CLI and Docker Compose
 - Git
-- wp-env (pre-installed with patches)
-- Automatic UID/GID permission handling
+- wp-env, unmodified
+- js-yaml, used by the `wokenv` command to read `wokenv.yml`
+- An entrypoint that runs commands as the host user
+
+### The entrypoint
+
+When `USER_ID` and `GROUP_ID` are set, the entrypoint creates that user, adds it to the group that owns `/var/run/docker.sock` and runs the command as that user. wp-env then builds its images for the right user, and files created in mounted directories keep the right owner. Without those variables the command runs as root.
 
 ## Important Notes
 
@@ -92,7 +58,7 @@ See [Wokenv documentation](https://github.com/wokenv/wokenv) for usage instructi
 
 If you have `userns-remap` enabled in your Docker daemon configuration (`/etc/docker/daemon.json`), you will experience permission issues. This is because wp-env requires specific user permissions that conflict with namespace remapping.
 
-The `entrypoint.sh` script handles user/group ID mapping, but this approach is incompatible with Docker's user namespace remapping feature.
+The `entrypoint.sh` script maps the host user into the container, but this approach is incompatible with Docker's user namespace remapping feature.
 
 **To check if you have userns-remap enabled:**
 ```bash
@@ -111,7 +77,9 @@ docker info | grep "userns"
 Images are rebuilt daily to include:
 - Latest OS security patches
 - Latest wp-env updates within same major version
-- When wp-env major version changes (e.g., 10.x → 11.0), new tags are created
+- When wp-env major version changes (e.g., 12.x → 13.0), new tags are created
+
+Every image is tested with `tests/test.sh` before it is pushed.
 
 ## Documentation
 
