@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0](https://github.com/wokenv/base/compare/v0.2.7...v1.0.0) (2026-11-16)
+
+### ⚠ BREAKING CHANGES
+
+* the bookworm and trixie variants and the Node.js 18 and
+20 images are no longer built. Tags are now latest, node{N} and
+node{N}-wpenv{M}.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+### Features
+
+* run wp-env 12 unpatched on Node.js 22 and 24 ([48cff93](https://github.com/wokenv/base/commit/48cff93ebde475f3b1777de4f59260c543dc48e9))
+
 ## [0.2.7](https://github.com/wokenv/base/compare/v0.2.6...v0.2.7) (2026-01-14)
 
 ### Bug Fixes
