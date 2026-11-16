@@ -37,14 +37,15 @@ jobs:
         uses: cycjimmy/semantic-release-action@v8
         id: semantic
         with:
+          # conventional-changelog-conventionalcommits v10+ needs conventional-changelog-writer 9,
+          # while release-notes-generator 14 still ships writer 8.
+          # No comments inside this block: the action joins its lines into one shell command.
           extra_plugins: |
             @semantic-release/commit-analyzer@latest
             @semantic-release/release-notes-generator@latest
             @semantic-release/changelog@latest
             @semantic-release/git@latest
             @semantic-release/github@latest
-            # v10+ needs conventional-changelog-writer 9, while
-            # release-notes-generator 14 still ships writer 8
             conventional-changelog-conventionalcommits@9
         env:
           # Use the token with bypass permissions
